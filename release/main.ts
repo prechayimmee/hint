@@ -1,4 +1,6 @@
-/* eslint-disable sort-keys */
+/* eslint-disable sort-keys * 
+ * This file manages the sequential tasks for the release process.
+ 
 /**
  * Spec: https://github.com/webhintio/hint/issues/1643
  */
@@ -31,6 +33,9 @@ const ignoredPackages: string[] = [];
 
 /** The tasks to be executed in sequential order. */
 const tasks = new Listr([
+    /**
+ * Validates and configures the environment.
+ */
     {
         title: 'Validate and configure environment',
         task: validateEnvironment
@@ -50,6 +55,9 @@ const tasks = new Listr([
         skip: skipReasons(skipIfError, skipIfJustRelease),
         task: taskErrorWrapper(calculateChangedPackages)
     },
+    /**
+ * Update configuration-all
+ */
     {
         title: 'Update configuration-all',
         skip: skipReasons(skipIfError, skipIfJustRelease),
@@ -76,6 +84,12 @@ const tasks = new Listr([
      * was pointing to `hint: 4.5.0` instead of `5.0.0`, `node_modules` could
      * have that version downloaded instead of the right one.
      */
+    /**
+ * Cross-deps should be updated by now and we need to make sure to commit
+ * the latest `yarn.lock` that might remove bad ones. E.g.: if a package
+ * was pointing to `hint: 4.5.0` instead of `5.0.0`, `node_modules` could
+ * have that version downloaded instead of the right one.
+ */
     {
         title: 'Install dependencies',
         skip: skipReasons(skipIfError, skipIfAborted, skipInstallation),
@@ -86,6 +100,9 @@ const tasks = new Listr([
         skip: skipReasons(skipIfError, skipIfJustRelease),
         task: updateChangelogs
     },
+    /**
+ * Publish on npm
+ */
     {
         title: 'Commit changes',
         skip: skipReasons(skipIfError, skipIfAborted, skipIfJustRelease),
@@ -106,6 +123,9 @@ const tasks = new Listr([
         skip: skipReasons(skipIfError, skipIfAborted, skipIfForced, skipIfTestMode),
         task: confirmRelease
     },
+    /**
+ * Submit extension-browser for Chrome
+ */
     {
         title: 'Publish on npm',
         skip: skipReasons(skipIfError, skipIfAborted, skipIfTestMode),
@@ -121,6 +141,9 @@ const tasks = new Listr([
         skip: skipReasons(skipIfError, skipIfAborted, skipIfSkipVsce, skipIfSameVersion('vscode-webhint'), skipIfTestMode),
         task: releaseForOVSX
     },
+    /**
+ * Submit extension-browser for Firefox
+ */
     {
         title: 'Submit extension-browser for Chrome',
         skip: skipReasons(skipIfError, skipIfAborted, skipIfSameVersion('@hint/extension-browser'), skipIfTestMode),
@@ -131,6 +154,9 @@ const tasks = new Listr([
         skip: skipReasons(skipIfError, skipIfAborted, skipIfSameVersion('@hint/extension-browser'), skipIfTestMode),
         task: releaseForBrowser('https://partner.microsoft.com/en-us/dashboard/microsoftedge/')
     },
+    /**
+ * Deauthenticate GitHub
+ */
     {
         title: 'Submit extension-browser for Firefox',
         skip: skipReasons(skipIfError, skipIfAborted, skipIfSameVersion('@hint/extension-browser'), skipIfTestMode),
